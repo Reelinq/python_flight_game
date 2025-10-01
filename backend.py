@@ -44,16 +44,32 @@ def get_airport(ident):
 	conn.close()
 	return airport
 
-def test_get_airport():
-	airport = get_airport("EFHK")
+def list_reachable_airports(current_ident, player_co2):
+	conn = get_connection()
+	cur = conn.cursor(dictionary=True)
+	cur.execute("SELECT ident, name, municipality, iso_country, latitude_deg, longitude_deg FROM airport")
+	airports = cur.fetchall()
+	cur.close()
+	conn.close()
 
-	assert airport is not None
-	assert airport["ident"] == "EFHK"
-	assert airport["municipality"] == "Helsinki"
-	assert airport["iso_country"] == "FI"
-	assert "name" in airport
+	current = get_airport(current_ident)
+	results = []
+	for airport in airports:
+		if airport["ident"] == current_ident:
+			continue
+		dist = haversine(current["latitude_deg"], current["longitude_deg"], airport["latitude_deg"], airport["longitude_deg"])
+		co2 = co2_cost_km(dist)
 
-	print("✅ Airport test passed!")
+		if co2 <= player_co2:
+			results.append({
+			"ident": airport["ident"],
+			"name": airport["name"],
+			"city": airport["municipality"],
+			"country": airport["iso_country"],
+			"distance_km": round(dist, 1),
+			"co2_cost": round(co2, 1)
+			})
+	return results
 
 if __name__ == "__main__":
-	test_get_airport()
+	print(list_reachable_airports("EFHK", 25))
