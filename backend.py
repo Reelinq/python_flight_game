@@ -31,8 +31,16 @@ def haversine(start_lat, start_lon, end_lat, end_lon):
 
 	return EARTH_RADIUS_KM * central_angle
 
+def test_haversine():
+	assert haversine(40.7128, -74.0060, 40.7128, -74.0060) == 0.0
+
+	ny_lat, ny_lon = 40.7128, -74.0060
+	boston_lat, boston_lon = 42.3601, -71.0589
+	distance = haversine(ny_lat, ny_lon, boston_lat, boston_lon)
+
+	assert 290 < distance < 310
+
+	print("✅ Haversine test passed!")
+
 if __name__ == "__main__":
-	conn = get_connection()
-	if conn:
-		print("✅ Connected to database!")
-		conn.close()
+	test_haversine()
