@@ -71,5 +71,17 @@ def list_reachable_airports(current_ident, player_co2):
 			})
 	return results
 
+def start_new_game(screen_name: str, start_airport_ident: str):
+	conn = get_connection()
+	cur = conn.cursor()
+	cur.execute("DELETE FROM game")
+	cur.execute(
+		"INSERT INTO game (co2_consumed, co2_budget, screen_name, location) VALUES (%s,%s,%s,%s)",
+		(0, SETTINGS["initial_co2_budget"], screen_name, start_airport_ident)
+	)
+	conn.commit()
+	cur.close()
+	conn.close()
+
 if __name__ == "__main__":
-	print(list_reachable_airports("EFHK", 25))
+	start_new_game("TestPlayer", "EFHK")
