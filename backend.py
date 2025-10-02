@@ -163,12 +163,39 @@ def travel(destination_ident):
 		"remaining_budget": round(game["co2_budget"] - new_consumed, 1)
 	}
 
+def get_game_state():
+	conn = get_connection()
+	cur = conn.cursor(dictionary=True)
+	cur.execute("SELECT * FROM game LIMIT 1")
+	game = cur.fetchone()
+	cur.close()
+	conn.close()
+
+	if not game:
+		return None
+
+	current_airport = get_airport(game["location"])
+
+	remaining_budget = game["co2_budget"] - game["co2_consumed"]
+
+	return {
+		"screen_name": game["screen_name"],
+		"current_airport": current_airport,
+		"co2_budget": game["co2_budget"],
+		"co2_consumed": game["co2_consumed"],
+		"remaining_budget": remaining_budget,
+		"location": game["location"]
+	}
+
 if __name__ == "__main__":
 	game_info = start_new_game("TestPlayer", "EFHK")
 	print(game_info['message'])
-	print(game_info['co2_budget'])
-	print(game_info['start_airport']['ident'])
-	print(game_info['start_airport']['name'])
-	print(len(game_info['target_airports']))
-	for i, airport in enumerate(game_info['target_airports'], 1):
-		print(f"  {i}. {airport['ident']} - {airport['name']}, {airport['municipality']}, {airport['iso_country']}")
+
+	state = get_game_state()
+	print(state['screen_name'])
+	print(state['current_airport']['ident'])
+	print(state['current_airport']['name'])
+	print(state['current_airport']['municipality'])
+	print(state['current_airport']['iso_country'])
+	print(f"{state['co2_consumed']}/{state['co2_budget']}")
+	print(state['remaining_budget'])
