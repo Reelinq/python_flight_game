@@ -67,6 +67,27 @@ def search_airports(search_term, limit=10):
 	conn.close()
 	return airports
 
+def get_random_target_airports(exclude_ident=None, count=5):
+	conn = get_connection()
+	cur = conn.cursor(dictionary=True)
+
+	exclude_clause = "AND ident != %s" if exclude_ident else ""
+	params = [exclude_ident] if exclude_ident else []
+
+	cur.execute(f"""
+		SELECT ident, name, municipality, iso_country
+		FROM airport
+		WHERE type IN ('large_airport', 'medium_airport')
+		{exclude_clause}
+		ORDER BY RAND()
+		LIMIT %s
+	""", params + [count])
+
+	airports = cur.fetchall()
+	cur.close()
+	conn.close()
+	return airports
+
 def list_reachable_airports(current_ident, player_co2):
 	conn = get_connection()
 	cur = conn.cursor(dictionary=True)
@@ -132,8 +153,6 @@ def travel(destination_ident):
 	}
 
 if __name__ == "__main__":
-	results = search_airports("He", 20)
-	for airport in results:
-		print(f"  {airport['ident']}: {airport['name']}, {airport['municipality']}, {airport['iso_country']}")
-
-	print(f"\nFound {len(results)} airports")
+	targets = get_random_target_airports("EFHK", count=5)
+	for i, airport in enumerate(targets, 1):
+		print(f"  Target {i}: {airport['ident']}, {airport['name']}, {airport['municipality']}, {airport['iso_country']}")
