@@ -138,7 +138,7 @@ def start_new_game(screen_name: str, start_airport_ident: str):
 		"co2_budget": SETTINGS["initial_co2_budget"]
 	}
 
-def travel(destination_ident):
+def travel(destination_ident, target_airports=None):
 	conn = get_connection()
 	cur = conn.cursor(dictionary=True)
 
@@ -157,10 +157,28 @@ def travel(destination_ident):
 	cur.close()
 	conn.close()
 
+	visited_target = False
+	remaining_targets = target_airports.copy() if target_airports else []
+
+	if target_airports:
+		for i, airport in enumerate(target_airports):
+			if airport['ident'] == destination_ident:
+				visited_target = True
+				remaining_targets.pop(i)
+				break
+
+	message = f"Flew from {origin['municipality']} to {dest['municipality']} consuming {round(co2,1)} kg CO₂."
+	if visited_target:
+		targets_left = len(remaining_targets)
+		message += f" Target airport visited! {targets_left} targets remaining."
+
 	return {
 		"success": True,
-		"message": f"Flew from {origin['municipality']} to {dest['municipality']} consuming {round(co2,1)} kg CO₂.",
-		"remaining_budget": round(game["co2_budget"] - new_consumed, 1)
+		"message": message,
+		"remaining_budget": round(game["co2_budget"] - new_consumed, 1),
+		"visited_target": visited_target,
+		"remaining_targets": remaining_targets,
+		"targets_completed": len(target_airports) - len(remaining_targets) if target_airports else 0
 	}
 
 def get_game_state():
@@ -209,17 +227,18 @@ def update_settings(new_settings):
 	}
 
 if __name__ == "__main__":
-	settings = get_settings()
-	print(settings['initial_co2_budget'])
-	print(settings['co2_per_100km'])
+	game_info = start_new_game("TestPlayer", "EFHK")
+	targets = game_info['target_airports']
+	print(len(targets))
+	for i, target in enumerate(targets, 1):
+		print(f"  {i}. {target['ident']} - {target['name']}")
 
-	result = update_settings({
-		"initial_co2_budget": 3000,
-		"co2_per_100km": 15,
-		"invalid_setting": 999
-	})
+	if targets:
+		target_to_visit = targets[0]
+		print(f"{target_to_visit['ident']} - {target_to_visit['name']}")
 
-	print(result['success'])
-	print(result['message'])
-	print(result['current_settings']['initial_co2_budget'])
-	print(result['current_settings']['co2_per_100km'])
+		result = travel(target_to_visit['ident'], targets)
+		print(result['message'])
+		print(result['visited_target'])
+		print(result['targets_completed'])
+		print(len(result['remaining_targets']))
