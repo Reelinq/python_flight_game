@@ -44,6 +44,29 @@ def get_airport(ident):
 	conn.close()
 	return airport
 
+def search_airports(search_term, limit=10):
+	conn = get_connection()
+	cur = conn.cursor(dictionary=True)
+	search_pattern = f"%{search_term}%"
+	cur.execute("""
+		SELECT ident, name, municipality, iso_country
+		FROM airport
+		WHERE (name LIKE %s OR municipality LIKE %s OR ident LIKE %s)
+		AND type IN ('large_airport', 'medium_airport')
+		ORDER BY
+			CASE
+				WHEN ident LIKE %s THEN 1
+				WHEN name LIKE %s THEN 2
+				ELSE 3
+			END,
+			name
+		LIMIT %s
+	""", (search_pattern, search_pattern, search_pattern, search_pattern, search_pattern, limit))
+	airports = cur.fetchall()
+	cur.close()
+	conn.close()
+	return airports
+
 def list_reachable_airports(current_ident, player_co2):
 	conn = get_connection()
 	cur = conn.cursor(dictionary=True)
@@ -109,14 +132,8 @@ def travel(destination_ident):
 	}
 
 if __name__ == "__main__":
-	start_new_game("TestPlayer", "EFHK")
-	result = travel("ESSA")
-	conn = get_connection()
-	cur = conn.cursor(dictionary=True)
-	cur.execute("SELECT * FROM game LIMIT 1")
-	final_game = cur.fetchone()
-	cur.close()
-	conn.close()
+	results = search_airports("He", 20)
+	for airport in results:
+		print(f"  {airport['ident']}: {airport['name']}, {airport['municipality']}, {airport['iso_country']}")
 
-	print(final_game['location'])
-	print(final_game['co2_consumed'])
+	print(f"\nFound {len(results)} airports")
