@@ -187,15 +187,39 @@ def get_game_state():
 		"location": game["location"]
 	}
 
-if __name__ == "__main__":
-	game_info = start_new_game("TestPlayer", "EFHK")
-	print(game_info['message'])
+def get_settings():
+	return SETTINGS.copy()
 
-	state = get_game_state()
-	print(state['screen_name'])
-	print(state['current_airport']['ident'])
-	print(state['current_airport']['name'])
-	print(state['current_airport']['municipality'])
-	print(state['current_airport']['iso_country'])
-	print(f"{state['co2_consumed']}/{state['co2_budget']}")
-	print(state['remaining_budget'])
+def update_settings(new_settings):
+	global SETTINGS
+	updated = {}
+
+	for key, value in new_settings.items():
+		if key in SETTINGS:
+			SETTINGS[key] = value
+			updated[key] = value
+		else:
+			print(f"Warning: Unknown setting '{key}' ignored")
+
+	return {
+		"success": True,
+		"message": f"Updated {len(updated)} setting(s)",
+		"updated_settings": updated,
+		"current_settings": SETTINGS.copy()
+	}
+
+if __name__ == "__main__":
+	settings = get_settings()
+	print(settings['initial_co2_budget'])
+	print(settings['co2_per_100km'])
+
+	result = update_settings({
+		"initial_co2_budget": 3000,
+		"co2_per_100km": 15,
+		"invalid_setting": 999
+	})
+
+	print(result['success'])
+	print(result['message'])
+	print(result['current_settings']['initial_co2_budget'])
+	print(result['current_settings']['co2_per_100km'])
