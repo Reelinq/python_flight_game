@@ -116,6 +116,8 @@ def list_reachable_airports(current_ident, player_co2):
 	return results
 
 def start_new_game(screen_name: str, start_airport_ident: str):
+	target_airports = get_random_target_airports(exclude_ident=start_airport_ident, count=5)
+
 	conn = get_connection()
 	cur = conn.cursor()
 	cur.execute("DELETE FROM game")
@@ -126,6 +128,15 @@ def start_new_game(screen_name: str, start_airport_ident: str):
 	conn.commit()
 	cur.close()
 	conn.close()
+
+	start_airport = get_airport(start_airport_ident)
+	return {
+		"success": True,
+		"message": f"Game started at {start_airport['name']} ({start_airport['municipality']})",
+		"start_airport": start_airport,
+		"target_airports": target_airports,
+		"co2_budget": SETTINGS["initial_co2_budget"]
+	}
 
 def travel(destination_ident):
 	conn = get_connection()
@@ -153,6 +164,11 @@ def travel(destination_ident):
 	}
 
 if __name__ == "__main__":
-	targets = get_random_target_airports("EFHK", count=5)
-	for i, airport in enumerate(targets, 1):
-		print(f"  Target {i}: {airport['ident']}, {airport['name']}, {airport['municipality']}, {airport['iso_country']}")
+	game_info = start_new_game("TestPlayer", "EFHK")
+	print(game_info['message'])
+	print(game_info['co2_budget'])
+	print(game_info['start_airport']['ident'])
+	print(game_info['start_airport']['name'])
+	print(len(game_info['target_airports']))
+	for i, airport in enumerate(game_info['target_airports'], 1):
+		print(f"  {i}. {airport['ident']} - {airport['name']}, {airport['municipality']}, {airport['iso_country']}")
