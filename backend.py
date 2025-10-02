@@ -83,5 +83,40 @@ def start_new_game(screen_name: str, start_airport_ident: str):
 	cur.close()
 	conn.close()
 
+def travel(destination_ident):
+	conn = get_connection()
+	cur = conn.cursor(dictionary=True)
+
+	cur.execute("SELECT co2_consumed, co2_budget, location FROM game LIMIT 1")
+	game = cur.fetchone()
+
+	origin = get_airport(game["location"])
+	dest = get_airport(destination_ident)
+	dist = haversine(origin["latitude_deg"], origin["longitude_deg"], dest["latitude_deg"], dest["longitude_deg"])
+	co2 = co2_cost_km(dist)
+
+	new_consumed = game["co2_consumed"] + co2
+
+	cur.execute("UPDATE game SET co2_consumed=%s, location=%s", (new_consumed, destination_ident))
+	conn.commit()
+	cur.close()
+	conn.close()
+
+	return {
+		"success": True,
+		"message": f"Flew from {origin['municipality']} to {dest['municipality']} consuming {round(co2,1)} kg CO₂.",
+		"remaining_budget": round(game["co2_budget"] - new_consumed, 1)
+	}
+
 if __name__ == "__main__":
 	start_new_game("TestPlayer", "EFHK")
+	result = travel("ESSA")
+	conn = get_connection()
+	cur = conn.cursor(dictionary=True)
+	cur.execute("SELECT * FROM game LIMIT 1")
+	final_game = cur.fetchone()
+	cur.close()
+	conn.close()
+
+	print(final_game['location'])
+	print(final_game['co2_consumed'])
