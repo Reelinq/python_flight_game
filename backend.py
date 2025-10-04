@@ -1,17 +1,63 @@
 import mysql.connector
 import math
-from mysql.connector import Error
 
 SETTINGS = {
 	"initial_co2_budget": 2000,
 	"co2_per_100km": 20
 }
 
+class GameState:
+    def __init__(self, screen_name: str, start_airport_ident: str, co2_budget: float, target_airports: list[dict]):
+        self.screen_name = screen_name
+        self.location = start_airport_ident
+        self.co2_budget = float(co2_budget)
+        self.co2_consumed = 0.0
+        # Store a copy so callers cannot mutate internal state accidentally
+        self.target_airports = [airport.copy() for airport in target_airports]
+        self._visited_target_idents: set[str] = set()
+
+    @property
+    def remaining_budget(self) -> float:
+        return self.co2_budget - self.co2_consumed
+
+    @property
+    def remaining_targets(self) -> list[dict]:
+        return [airport for airport in self.target_airports if airport["ident"] not in self._visited_target_idents]
+
+    @property
+    def targets_completed(self) -> int:
+        return len(self._visited_target_idents)
+
+    def record_travel(self, destination_ident: str, co2_spent: float) -> bool:
+        self.co2_consumed += co2_spent
+        self.location = destination_ident
+
+        for airport in self.target_airports:
+            if airport["ident"] == destination_ident and destination_ident not in self._visited_target_idents:
+                self._visited_target_idents.add(destination_ident)
+                return True
+        return False
+
+    def to_dict(self) -> dict:
+        return {
+            "screen_name": self.screen_name,
+            "location": self.location,
+            "co2_budget": self.co2_budget,
+            "co2_consumed": self.co2_consumed,
+            "remaining_budget": self.remaining_budget,
+            "target_airports": [airport.copy() for airport in self.target_airports],
+            "remaining_targets": [airport.copy() for airport in self.remaining_targets],
+            "targets_completed": self.targets_completed,
+        }
+
+
+CURRENT_GAME: GameState | None = None
+
 def get_connection():
 	return mysql.connector.connect(
 	host="localhost",
 	user="root",
-	password="",
+	password="2006",
 	database="flight_game"
 )
 
@@ -116,58 +162,50 @@ def list_reachable_airports(current_ident, player_co2):
 	return results
 
 def start_new_game(screen_name: str, start_airport_ident: str):
-	target_airports = get_random_target_airports(exclude_ident=start_airport_ident, count=5)
+	global CURRENT_GAME
 
-	conn = get_connection()
-	cur = conn.cursor()
-	cur.execute("DELETE FROM game")
-	cur.execute(
-		"INSERT INTO game (co2_consumed, co2_budget, screen_name, location) VALUES (%s,%s,%s,%s)",
-		(0, SETTINGS["initial_co2_budget"], screen_name, start_airport_ident)
+	target_airports = get_random_target_airports(exclude_ident=start_airport_ident, count=5)
+	CURRENT_GAME = GameState(
+		screen_name=screen_name,
+		start_airport_ident=start_airport_ident,
+		co2_budget=SETTINGS["initial_co2_budget"],
+		target_airports=target_airports,
 	)
-	conn.commit()
-	cur.close()
-	conn.close()
 
 	start_airport = get_airport(start_airport_ident)
 	return {
 		"success": True,
 		"message": f"Game started at {start_airport['name']} ({start_airport['municipality']})",
 		"start_airport": start_airport,
-		"target_airports": target_airports,
-		"co2_budget": SETTINGS["initial_co2_budget"]
+		"target_airports": [airport.copy() for airport in CURRENT_GAME.target_airports],
+		"co2_budget": SETTINGS["initial_co2_budget"],
 	}
 
 def travel(destination_ident, target_airports=None):
-	conn = get_connection()
-	cur = conn.cursor(dictionary=True)
+	global CURRENT_GAME
 
-	cur.execute("SELECT co2_consumed, co2_budget, location FROM game LIMIT 1")
-	game = cur.fetchone()
+	if CURRENT_GAME is None:
+		return {
+			"success": False,
+			"message": "No active game. Start a new game first.",
+			"remaining_budget": None,
+			"visited_target": False,
+			"remaining_targets": [],
+			"targets_completed": 0,
+		}
 
-	origin = get_airport(game["location"])
+	if target_airports is not None:
+		CURRENT_GAME.target_airports = [airport.copy() for airport in target_airports]
+
+	origin = get_airport(CURRENT_GAME.location)
 	dest = get_airport(destination_ident)
 	dist = haversine(origin["latitude_deg"], origin["longitude_deg"], dest["latitude_deg"], dest["longitude_deg"])
 	co2 = co2_cost_km(dist)
 
-	new_consumed = game["co2_consumed"] + co2
+	visited_target = CURRENT_GAME.record_travel(destination_ident, co2)
+	remaining_targets = [airport.copy() for airport in CURRENT_GAME.remaining_targets]
 
-	cur.execute("UPDATE game SET co2_consumed=%s, location=%s", (new_consumed, destination_ident))
-	conn.commit()
-	cur.close()
-	conn.close()
-
-	visited_target = False
-	remaining_targets = target_airports.copy() if target_airports else []
-
-	if target_airports:
-		for i, airport in enumerate(target_airports):
-			if airport['ident'] == destination_ident:
-				visited_target = True
-				remaining_targets.pop(i)
-				break
-
-	message = f"Flew from {origin['municipality']} to {dest['municipality']} consuming {round(co2,1)} kg CO₂."
+	message = f"Flew from {origin['municipality']} to {dest['municipality']} consuming {round(co2, 1)} kg CO2."
 	if visited_target:
 		targets_left = len(remaining_targets)
 		message += f" Target airport visited! {targets_left} targets remaining."
@@ -175,34 +213,28 @@ def travel(destination_ident, target_airports=None):
 	return {
 		"success": True,
 		"message": message,
-		"remaining_budget": round(game["co2_budget"] - new_consumed, 1),
+		"remaining_budget": round(CURRENT_GAME.remaining_budget, 1),
 		"visited_target": visited_target,
 		"remaining_targets": remaining_targets,
-		"targets_completed": len(target_airports) - len(remaining_targets) if target_airports else 0
+		"targets_completed": CURRENT_GAME.targets_completed,
 	}
 
 def get_game_state():
-	conn = get_connection()
-	cur = conn.cursor(dictionary=True)
-	cur.execute("SELECT * FROM game LIMIT 1")
-	game = cur.fetchone()
-	cur.close()
-	conn.close()
-
-	if not game:
+	if CURRENT_GAME is None:
 		return None
 
-	current_airport = get_airport(game["location"])
-
-	remaining_budget = game["co2_budget"] - game["co2_consumed"]
+	current_airport = get_airport(CURRENT_GAME.location)
 
 	return {
-		"screen_name": game["screen_name"],
+		"screen_name": CURRENT_GAME.screen_name,
 		"current_airport": current_airport,
-		"co2_budget": game["co2_budget"],
-		"co2_consumed": game["co2_consumed"],
-		"remaining_budget": remaining_budget,
-		"location": game["location"]
+		"co2_budget": CURRENT_GAME.co2_budget,
+		"co2_consumed": CURRENT_GAME.co2_consumed,
+		"remaining_budget": CURRENT_GAME.remaining_budget,
+		"location": CURRENT_GAME.location,
+		"target_airports": [airport.copy() for airport in CURRENT_GAME.target_airports],
+		"remaining_targets": [airport.copy() for airport in CURRENT_GAME.remaining_targets],
+		"targets_completed": CURRENT_GAME.targets_completed,
 	}
 
 def get_settings():
