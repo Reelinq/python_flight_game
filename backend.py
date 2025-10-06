@@ -90,7 +90,7 @@ def get_airport(ident):
 
 	if conn is None:
 		return None
-	
+
 	try:
 		cur = conn.cursor(dictionary=True)
 		cur.execute("SELECT ident, name, municipality, iso_country, latitude_deg, longitude_deg FROM airport WHERE ident=%s", (ident,))
@@ -98,7 +98,7 @@ def get_airport(ident):
 		cur.close()
 		conn.close()
 		return airport
-	
+
 	except mysql.connector.Error as e:
 		print(e)
 		return None
@@ -108,7 +108,7 @@ def search_airports(search_term, limit=10):
 
 	if conn is None:
 		return None
-	
+
 	try:
 		cur = conn.cursor(dictionary=True)
 		search_pattern = f"%{search_term}%"
@@ -130,7 +130,7 @@ def search_airports(search_term, limit=10):
 		cur.close()
 		conn.close()
 		return airports
-	
+
 	except mysql.connector.Error as e:
 		print(e)
 		return None
@@ -140,7 +140,7 @@ def get_random_target_airports(exclude_ident=None, count=5):
 
 	if conn is None:
 		return None
-	
+
 	try:
 		cur = conn.cursor(dictionary=True)
 
@@ -160,7 +160,7 @@ def get_random_target_airports(exclude_ident=None, count=5):
 		cur.close()
 		conn.close()
 		return airports
-	
+
 	except mysql.connector.Error as e:
 		print(e)
 		return None
@@ -170,7 +170,7 @@ def list_reachable_airports(current_ident, player_co2):
 
 	if conn is None:
 		return None
-	
+
 	try:
 		cur = conn.cursor(dictionary=True)
 		cur.execute("SELECT ident, name, municipality, iso_country, latitude_deg, longitude_deg FROM airport")
@@ -182,7 +182,7 @@ def list_reachable_airports(current_ident, player_co2):
 
 		if current is None:
 			return None
-		
+
 		results = []
 		for airport in airports:
 			if airport["ident"] == current_ident:
@@ -213,7 +213,7 @@ def start_new_game(screen_name: str, start_airport_ident: str):
 
 	if start_airport is None or target_airports is None:
 		return {
-			"success": False, 
+			"success": False,
 			"message": "Failed to start new game.",
 			"start_airport": None,
 			"target_airports": None,
@@ -243,7 +243,7 @@ def travel(destination_ident, target_airports=None):
 			"success": False,
 			"message": "Missing game or parameters"
 		}
-	
+
 	origin = get_airport(CURRENT_GAME.location)
 	dest = get_airport(destination_ident)
 
@@ -282,19 +282,19 @@ def check_game_end():
 
 	if len(state["remaining_targets"]) == 0:
 		return True
-	
+
 	for airport in state["remaining_targets"]:
 		dest = get_airport(airport["ident"])
 
 		if not dest:
 			continue
-		
+
 		dist = haversine(origin["latitude_deg"], origin["longitude_deg"], dest["latitude_deg"], dest["longitude_deg"])
 		co2 = co2_cost_km(dist)
 
 		if co2 <= state["remaining_budget"]:
 			return False
-	
+
 	return True
 
 def get_game_state():
@@ -305,7 +305,7 @@ def get_game_state():
 
 	if current_airport is None:
 		return None
-	
+
 	return {
 		"screen_name": CURRENT_GAME.screen_name,
 		"current_airport": current_airport,
@@ -343,10 +343,9 @@ if __name__ == "__main__":
 	game_info = start_new_game("TestPlayer", "EFHK")
 	targets = game_info['target_airports']
 
-	for i, target in enumerate(targets, 1):
-		print(f"  {i}. {target['ident']} - {target['name']}")
-
 	if targets:
+		for i, target in enumerate(targets, 1):
+			print(f"  {i}. {target['ident']} - {target['name']}")
 		target_to_visit = targets[0]
 		print(f"{target_to_visit['ident']} - {target_to_visit['name']}")
 
