@@ -1,5 +1,6 @@
 import mysql.connector
 import math
+import random
 
 SETTINGS = {
 	"initial_co2_budget": 2000,
@@ -58,7 +59,7 @@ def get_connection():
 		return mysql.connector.connect(
 			host="localhost",
 			user="root",
-			password="",
+			password="2006",
 			database="flight_game"
 		)
 	except mysql.connector.Error as e:
@@ -164,6 +165,27 @@ def get_random_target_airports(exclude_ident=None, count=5):
 	except mysql.connector.Error as e:
 		print(e)
 		return None
+
+
+def generate_random_airports_with_co2(count=5, co2_min=1000, co2_max=67000, exclude_ident=None):
+	airports = get_random_target_airports(exclude_ident=exclude_ident, count=count)
+
+	if not airports:
+		return {
+			"success": False,
+			"message": "Unable to fetch random airports.",
+			"airports": None,
+			"co2_budget": None,
+		}
+
+	low, high = sorted((int(co2_min), int(co2_max)))
+	co2_budget = random.randint(low, high)
+
+	return {
+		"success": True,
+		"airports": [airport.copy() for airport in airports],
+		"co2_budget": co2_budget,
+	}
 
 def list_reachable_airports(current_ident, player_co2):
 	conn = get_connection()
