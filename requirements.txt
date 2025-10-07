@@ -3,3 +3,5 @@ fastapi
 uvicorn[standard]
 sqlalchemy
 pydantic-settings
+httpx>=0.27
+pydantic>=2

@@ -49,7 +49,11 @@ CO2_PER_100KM=20
 
 From repo root:
 ```bash
+# make sure backend is running in another terminal:
 uvicorn app.main:app --reload
+
+# run CLI (frontend):
+python -m app.cli.main
 ```
 Server: http://127.0.0.1:8000
 Docs: http://127.0.0.1:8000/docs
