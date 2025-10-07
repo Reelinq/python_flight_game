@@ -1,2 +1,5 @@
 mysql-connector-python
-random
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic-settings
