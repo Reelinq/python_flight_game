@@ -43,22 +43,50 @@ def pick_airport(client: ApiClient, limit: int = 5) -> AirportMinimal:
 
 def show_targets(state: GameState) -> None:
     print("\nTarget airports:")
+
+    remaining_idents = {t.ident for t in state.remaining_targets}
+
     for t in state.target_airports:
         city = t.municipality or "-"
-        print(f"  - {t.ident} ({t.name or '-'}, {city})")
-    print(f"CO2 Budget: {state.co2_budget} | Remaining: {state.remaining_budget}\n")
+        if t.ident in remaining_idents:
+            print(f"  ⏳ {t.ident} ({t.name or '-'}, {city}) - Not visited")
+        else:
+            print(f"  ✅ {t.ident} ({t.name or '-'}, {city}) - VISITED")
+
+    print(f"CO2 Budget: {state.co2_budget} | Remaining: {state.remaining_budget}")
+    print(f"Progress: {state.targets_completed}/{len(state.target_airports)} targets completed\n")
 
 def game_loop(client: ApiClient, state: GameState) -> None:
     game_id = state.id
     show_targets(state)
 
     while True:
+        # Check if game is over
+        try:
+            over = client.is_over(game_id)
+            if over:
+                current_state = client.get_state(game_id)
+                if current_state.targets_completed == len(current_state.target_airports):
+                    print("\n🎉 CONGRATULATIONS! 🎉")
+                    print("You successfully visited all target airports!")
+                    print(f"Final stats: {current_state.targets_completed}/{len(current_state.target_airports)} targets completed")
+                    print(f"CO2 used: {round(current_state.co2_budget - current_state.remaining_budget)}/{current_state.co2_budget} kg")
+                    print("You are a master pilot! ✈️\n")
+                else:
+                    print("\n💨 GAME OVER 💨")
+                    print("You ran out of CO2 budget before visiting all targets.")
+                    print(f"Final stats: {current_state.targets_completed}/{len(current_state.target_airports)} targets completed")
+                    print(f"CO2 depleted: {round(current_state.co2_budget - current_state.remaining_budget)}/{current_state.co2_budget} kg used")
+                    print("Better luck next time! 🌍\n")
+                input("Press Enter to return to main menu...")
+                break
+        except ApiError:
+            pass
+
         print("1. Show state")
-        print("2. List reachable")
-        print("3. Travel")
-        print("4. Check game over")
-        print("5. Exit to main menu")
-        choice = prompt_int("Choose: ", 1, 5)
+        print("2. Travel")
+        print("3. Exit to main menu")
+        choice = prompt_int("Choose: ", 1, 3)
 
         if choice == 1:
             try:
@@ -69,29 +97,11 @@ def game_loop(client: ApiClient, state: GameState) -> None:
                 print(f"API error: {e}")
 
         elif choice == 2:
-            try:
-                data = client.reachable(game_id)
-                if not data:
-                    print("\nNothing reachable with current budget.")
-                else:
-                    print("\nReachable airports:")
-                    display_limit = 25
-                    for r in data[:display_limit]:
-                        print(f" - {r['ident']}: {r['name']} ({r['city']}), {r['distance_km']} km, {r['co2_cost']} kg")
-                    remaining = max(0, len(data) - display_limit)
-                    if remaining > 0:
-                        print(f"... and {remaining} more.")
-                    print()
-            except ApiError as e:
-                print(f"API error: {e}")
-
-        elif choice == 3:
             dest = input("Destination ident: ").strip().upper()
             if not dest:
                 print("Type an ICAO/IATA ident.")
                 continue
             try:
-                # Pre-check: if budget already zero or below, end game gracefully
                 try:
                     current_state = client.get_state(game_id)
                     if current_state.remaining_budget <= 0:
@@ -104,14 +114,12 @@ def game_loop(client: ApiClient, state: GameState) -> None:
                 print(f"\n{result.message}")
                 print(f"Remaining budget: {result.remaining_budget}, Targets done: {result.targets_completed}\n")
 
-                # If budget hit zero after the move, end game and return
                 if result.remaining_budget <= 0:
                     print("You lost the game. CO₂ budget is 0. Returning to main menu.\n")
                     break
             except ApiError as e:
                 msg = str(e)
                 if "Insufficient CO2 budget for this flight" in msg:
-                    # Check if the game is actually over; if so, exit to main menu
                     try:
                         over = client.is_over(game_id)
                     except ApiError:
@@ -124,14 +132,7 @@ def game_loop(client: ApiClient, state: GameState) -> None:
                 else:
                     print(f"API error: {e}")
 
-        elif choice == 4:
-            try:
-                over = client.is_over(game_id)
-                print("\nGame over!" if over else "\nYou can still continue.")
-            except ApiError as e:
-                print(f"API error: {e}")
-
-        elif choice == 5:
+        elif choice == 3:
             break
 
 def main_menu(client: ApiClient) -> None:
