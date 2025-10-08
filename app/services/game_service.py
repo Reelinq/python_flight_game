@@ -71,6 +71,11 @@ def travel(db: Session, game_id: int, destination_ident: str) -> dict:
     dist = haversine(origin.latitude_deg, origin.longitude_deg, dest.latitude_deg, dest.longitude_deg)
     co2 = co2_cost_km(dist, settings.co2_per_100km)
 
+    # Prevent overspending CO2 budget
+    remaining_before = g.co2_budget - g.co2_consumed
+    if co2 > remaining_before:
+        raise ValueError("Insufficient CO2 budget for this flight")
+
     g.co2_consumed = float(g.co2_consumed + co2)
     g.location_ident = destination_ident
 
@@ -144,6 +149,8 @@ def is_game_over(db: Session, game_id: int) -> bool:
         return False
 
     remaining_budget = g.co2_budget - g.co2_consumed
+    if remaining_budget <= 0:
+        return True
 
     for t in _remaining_targets(g):
         dest = airport_repo.get_by_ident(db, t["ident"])

@@ -87,11 +87,38 @@ def game_loop(client: ApiClient, state: GameState) -> None:
                 print("Type an ICAO/IATA ident.")
                 continue
             try:
+                # Pre-check: if budget already zero or below, end game gracefully
+                try:
+                    current_state = client.get_state(game_id)
+                    if current_state.remaining_budget <= 0:
+                        print("\nYou lost the game. CO₂ budget is depleted. Returning to main menu.\n")
+                        break
+                except ApiError:
+                    pass
+
                 result = client.travel(game_id, dest)
                 print(f"\n{result.message}")
                 print(f"Remaining budget: {result.remaining_budget}, Targets done: {result.targets_completed}\n")
+
+                # If budget hit zero after the move, end game and return
+                if result.remaining_budget <= 0:
+                    print("You lost the game. CO₂ budget is 0. Returning to main menu.\n")
+                    break
             except ApiError as e:
-                print(f"API error: {e}")
+                msg = str(e)
+                if "Insufficient CO2 budget for this flight" in msg:
+                    # Check if the game is actually over; if so, exit to main menu
+                    try:
+                        over = client.is_over(game_id)
+                    except ApiError:
+                        over = False
+                    if over:
+                        print("\nYou lost the game. CO₂ budget is depleted. Returning to main menu.\n")
+                        break
+                    else:
+                        print("Not enough CO₂ budget for that flight.")
+                else:
+                    print(f"API error: {e}")
 
         elif choice == 4:
             try:
