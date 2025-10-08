@@ -75,9 +75,13 @@ def game_loop(client: ApiClient, state: GameState) -> None:
                     print("\nNothing reachable with current budget.")
                 else:
                     print("\nReachable airports:")
-                    for r in data[:25]:
+                    display_limit = 25
+                    for r in data[:display_limit]:
                         print(f" - {r['ident']}: {r['name']} ({r['city']}), {r['distance_km']} km, {r['co2_cost']} kg")
-                print()
+                    remaining = max(0, len(data) - display_limit)
+                    if remaining > 0:
+                        print(f"... and {remaining} more.")
+                    print()
             except ApiError as e:
                 print(f"API error: {e}")
 
