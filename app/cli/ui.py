@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List
+import random
 from .api import ApiClient, ApiError
 from .types import AirportMinimal, GameState, TravelResult
 
@@ -106,7 +107,7 @@ def main_menu(client: ApiClient) -> None:
     while True:
         print("\n=== Flight Game ===")
         print("1. Start Game")
-        print("2. Settings (view)")
+        print("2. Settings")
         print("3. Exit")
         choice = prompt_int("Choose: ", 1, 3)
 
@@ -121,11 +122,81 @@ def main_menu(client: ApiClient) -> None:
                 print(f"Failed to start: {e}")
 
         elif choice == 2:
-            try:
-                s = client.get_settings()
-                print(f"\nSettings -> initial_co2_budget={s.initial_co2_budget}, co2_per_100km={s.co2_per_100km}\n")
-            except ApiError as e:
-                print(f"API error: {e}")
+            settings_menu(client)
 
         elif choice == 3:
             break
+
+def settings_menu(client: ApiClient) -> None:
+    """Handles the settings menu for randomizing the next game's CO₂ budget."""
+    try:
+        s = client.get_settings()
+        print(f"\nCurrent settings -> initial_co2_budget={s.initial_co2_budget}, co2_per_100km={s.co2_per_100km}")
+    except ApiError as e:
+        print(f"API error fetching settings: {e}")
+
+    setting_choice = input(
+        "Would you like random or manual settings?\n"
+        "(1) Set manually (budget and CO₂ rate)\n"
+        "(2) Randomize next game's CO₂ budget\n"
+        "(3) Return to main menu\n"
+        "Your choice: "
+    ).strip()
+
+    if setting_choice == "1":
+        # Manual configuration: prompt for budget and CO₂ consumption
+        def _prompt_float(msg: str, min_val: float = 0.0) -> float:
+            while True:
+                raw = input(msg).strip()
+                try:
+                    val = float(raw)
+                    if val < min_val:
+                        raise ValueError()
+                    return val
+                except ValueError:
+                    print(f"Enter a number >= {min_val}.")
+
+        budget = _prompt_float("Enter initial CO₂ budget in kg (e.g., 2000): ", 0.0)
+
+        print("Choose CO₂ consumption unit:")
+        print("  1) per 100 km (e.g., 20)")
+        print("  2) per km (e.g., 0.2)")
+        unit = ""
+        while unit not in ("1", "2"):
+            unit = input("Unit (1/2): ").strip()
+
+        if unit == "1":
+            rate_val = _prompt_float("Enter CO₂ per 100 km (kg): ", 0.0)
+            rate_per_100km = rate_val
+        else:
+            rate_val = _prompt_float("Enter CO₂ per km (kg): ", 0.0)
+            rate_per_100km = rate_val * 100.0
+
+        try:
+            updated = client.update_settings(
+                initial_co2_budget=budget,
+                co2_per_100km=rate_per_100km,
+            )
+            print(
+                f"\n✅ Updated settings: initial_co2_budget={updated.initial_co2_budget} kg, "
+                f"co2_per_100km={updated.co2_per_100km} kg."
+            )
+        except ApiError as e:
+            print(f"⚠️ Couldn't update settings — {e}")
+        return
+
+    if setting_choice == "2":
+        # Randomize a new initial CO₂ budget and update via new settings route
+        new_budget = float(random.randint(1000, 67000))
+        try:
+            updated = client.update_settings(initial_co2_budget=new_budget)
+            print(f"\n✅ Next game will use a random CO₂ budget: {updated.initial_co2_budget} kg.")
+        except ApiError as e:
+            print(f"⚠️ Couldn't update settings — {e}")
+        return
+
+    if setting_choice == "3":
+        print("Returning to main menu.")
+        return
+
+    print("Invalid choice. Please try again.")
