@@ -27,6 +27,7 @@ source .venv/bin/activate.fish
 PowerShell (Windows)
 ```ps
 python -m venv .venv
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
 .\.venv\Scripts\Activate.ps1
 ```
 
