@@ -46,14 +46,14 @@ body.page {
   border-radius: 18px;
   padding: 22px 20px;
   box-shadow: var(--shadow);
+  position: relative;
 }
 
 .content .page-header {
-  width: 100%;
+  position: absolute;
+  top: 12px;
+  right: 12px;
   display: flex;
-  justify-content: flex-end;
-  padding: 0;
-  margin: 0 0 6px;
 }
 
 .title {
