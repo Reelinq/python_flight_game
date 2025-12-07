@@ -58,6 +58,7 @@ python -m app.cli.main
 ```
 Server: http://127.0.0.1:8000
 Docs: http://127.0.0.1:8000/docs
+Web UI: http://127.0.0.1:8000/ui/
 
 ## Testing
 

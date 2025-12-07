@@ -1,5 +1,6 @@
 mysql-connector-python
 fastapi
+jinja2
 uvicorn[standard]
 sqlalchemy
 pydantic-settings
