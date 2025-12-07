@@ -16,6 +16,8 @@ def search(db: Session, term: str, limit: int = 10):
         Airport.municipality,
         Airport.iso_country,
         Airport.type,
+        Airport.latitude_deg,
+        Airport.longitude_deg,
     ).where(
         Airport.type.in_(["large_airport", "medium_airport"])
     )
@@ -43,11 +45,40 @@ def search(db: Session, term: str, limit: int = 10):
 
 def random_targets(db: Session, exclude_ident: str | None, count: int = 5):
     stmt = select(
-        Airport.ident, Airport.name, Airport.municipality, Airport.iso_country
+        Airport.ident,
+        Airport.name,
+        Airport.municipality,
+        Airport.iso_country,
+        Airport.latitude_deg,
+        Airport.longitude_deg,
     ).where(
         Airport.type.in_(["large_airport", "medium_airport"])
     )
     if exclude_ident:
         stmt = stmt.where(Airport.ident != exclude_ident)
     stmt = stmt.order_by(func.rand()).limit(count)
+    return [dict(r._mapping) for r in db.execute(stmt)]
+
+def search_in_bbox(
+    db: Session,
+    min_lat: float,
+    max_lat: float,
+    min_lon: float,
+    max_lon: float,
+    limit: int = 500
+):
+    stmt = select(
+        Airport.ident,
+        Airport.name,
+        Airport.municipality,
+        Airport.iso_country,
+        Airport.latitude_deg,
+        Airport.longitude_deg,
+    ).where(
+        Airport.type.in_(["large_airport", "medium_airport"]),
+        Airport.latitude_deg >= min_lat,
+        Airport.latitude_deg <= max_lat,
+        Airport.longitude_deg >= min_lon,
+        Airport.longitude_deg <= max_lon,
+    ).limit(limit)
     return [dict(r._mapping) for r in db.execute(stmt)]

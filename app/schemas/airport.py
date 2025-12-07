@@ -6,6 +6,8 @@ class AirportMinimal(BaseModel):
     name: Optional[str] = None
     municipality: Optional[str] = None
     iso_country: Optional[str] = None
+    latitude_deg: Optional[float] = None
+    longitude_deg: Optional[float] = None
 
 class AirportFull(AirportMinimal):
     type: Optional[str] = None

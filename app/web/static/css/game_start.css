@@ -153,3 +153,108 @@ body.page {
   accent-color: var(--border-strong);
 }
 
+.panel {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(155, 134, 247, 0.2);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.section-heading {
+  margin: 0 0 10px;
+  font-size: 18px;
+  letter-spacing: 0.01em;
+}
+
+.map-shell {
+  width: 100%;
+  height: 360px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(31, 27, 46, 0.08), 0 10px 28px rgba(31, 27, 46, 0.08);
+  border: 1px solid rgba(155, 134, 247, 0.2);
+  margin: 12px 0;
+}
+
+#start-map, #move-map {
+  width: 100%;
+  height: 100%;
+}
+
+.airport-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.airport-card {
+  border: 1px solid rgba(155, 134, 247, 0.3);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  text-align: left;
+  box-shadow: inset 0 1px 2px rgba(31, 27, 46, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.airport-card h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.airport-card small {
+  color: var(--muted);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(127, 108, 241, 0.1);
+  color: var(--text);
+  border: 1px solid rgba(155, 134, 247, 0.3);
+  font-size: 12px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.inline-note {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.status {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.list-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.list-actions .input {
+  max-width: 320px;
+}

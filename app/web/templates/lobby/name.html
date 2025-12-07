@@ -1,20 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Enter Name</title>
-  <link rel="stylesheet" href="/static/css/style.css">
-  <link rel="stylesheet" href="/static/css/game_start.css">
-</head>
-<body class="page page-name">
-  <main class="content">
-    <header class="page-header">
-      <a class="buttons exit_button" href="/ui/">Exit</a>
-    </header>
-    <label class="label" for="player-name">Enter your name:</label>
-    <input class="input" id="player-name" type="text" name="playerName" placeholder="Username">
-    <button class="buttons" type="button">Continue</button>
-  </main>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enter Name</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/game_start.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="anonymous"
+    />
+  </head>
+  <body class="page page-name">
+    <main class="content">
+      <header class="page-header">
+        <a class="buttons exit_button" href="/ui/">Exit</a>
+      </header>
+
+      <div class="panel">
+        <div class="form-row">
+          <label class="label" for="player-name">Screen name</label>
+          <input
+            class="input"
+            id="player-name"
+            type="text"
+            name="playerName"
+            placeholder="Enter your screen name"
+          />
+          <button class="buttons" id="start-game" type="button">
+            Start game
+          </button>
+        </div>
+        <div class="status" id="form-status"></div>
+      </div>
+
+      <div class="panel">
+        <div class="list-actions">
+          <h2 class="section-heading">Choose a starting airport</h2>
+          <input
+            class="input"
+            id="airport-filter"
+            type="search"
+            placeholder="Filter by name, city, or ident"
+          />
+        </div>
+        <div class="map-shell">
+          <div id="start-map"></div>
+        </div>
+        <div class="status" id="airports-status">Loading airports…</div>
+        <div class="airport-grid" id="airport-list"></div>
+      </div>
+    </main>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin="anonymous"
+    ></script>
+    <script src="/static/js/lobby.js"></script>
+  </body>
 </html>

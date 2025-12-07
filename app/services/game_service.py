@@ -54,7 +54,9 @@ def get_state(db: Session, game_id: int) -> dict:
             "ident": current.ident,
             "name": current.name,
             "municipality": current.municipality,
-            "iso_country": current.iso_country
+            "iso_country": current.iso_country,
+            "latitude_deg": current.latitude_deg,
+            "longitude_deg": current.longitude_deg,
         }
     }
 
@@ -133,6 +135,8 @@ def list_reachable(db: Session, game_id: int):
                 "country": a.iso_country,
                 "distance_km": round(dist, 1),
                 "co2_cost": round(co2, 1),
+                "latitude_deg": a.latitude_deg,
+                "longitude_deg": a.longitude_deg,
             })
     return results
 

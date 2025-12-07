@@ -7,6 +7,8 @@ class AirportMinimal(BaseModel):
     name: Optional[str] = None
     municipality: Optional[str] = None
     iso_country: Optional[str] = None
+    latitude_deg: Optional[float] = None
+    longitude_deg: Optional[float] = None
 
 class GameState(BaseModel):
     id: int
@@ -18,6 +20,7 @@ class GameState(BaseModel):
     target_airports: List[AirportMinimal]
     remaining_targets: List[AirportMinimal]
     targets_completed: int
+    current_airport: AirportMinimal | None = None
 
 class TravelResult(BaseModel):
     success: bool

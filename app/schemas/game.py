@@ -19,6 +19,7 @@ class GameStateOut(BaseModel):
     target_airports: List[AirportMinimal]
     remaining_targets: List[AirportMinimal]
     targets_completed: int
+    current_airport: AirportMinimal
 
 class TravelResultOut(BaseModel):
     success: bool

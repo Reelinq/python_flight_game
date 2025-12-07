@@ -22,6 +22,7 @@ def start_game(body: StartGameIn, db: Session = Depends(get_db)):
             target_airports=[AirportMinimal(**x) for x in state["target_airports"]],
             remaining_targets=[AirportMinimal(**x) for x in state["remaining_targets"]],
             targets_completed=state["targets_completed"],
+            current_airport=AirportMinimal(**state["current_airport"]),
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -40,6 +41,7 @@ def get_state(game_id: int, db: Session = Depends(get_db)):
             target_airports=[AirportMinimal(**x) for x in state["target_airports"]],
             remaining_targets=[AirportMinimal(**x) for x in state["remaining_targets"]],
             targets_completed=state["targets_completed"],
+            current_airport=AirportMinimal(**state["current_airport"]),
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
