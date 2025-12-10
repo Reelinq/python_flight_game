@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flight Game - Move</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/move.css">
+</head>
+<body class="page page-move">
+  <main class="content">
+    <div class="move-container">
+      <aside class="sidebar">
+        <div class="game-info">
+          <h2 id="player-name">Loading...</h2>
+          <div class="current-location">
+            <h3>Current Location</h3>
+            <div id="current-airport" class="airport-info">
+              <p id="current-airport-name">Loading...</p>
+              <small id="current-airport-code">---</small>
+            </div>
+          </div>
+
+          <div class="budget-status">
+            <h3>CO₂ Budget</h3>
+            <div class="budget-bar">
+              <div id="budget-used" class="budget-used"></div>
+            </div>
+            <div class="budget-info">
+              <span id="budget-used-text">0 kg</span> / <span id="budget-total-text">2000 kg</span>
+            </div>
+            <div class="budget-remaining">
+              Remaining: <span id="budget-remaining-text">2000 kg</span>
+            </div>
+          </div>
+
+          <div class="targets-section">
+            <h3>Target Airports (<span id="targets-count">5</span>)</h3>
+            <div id="target-list" class="target-list">
+            </div>
+          </div>
+        </div>
+
+        <div class="game-status">
+          <div id="status-message" class="status-message"></div>
+        </div>
+      </aside>
+
+      <div class="map-section">
+        <div id="move-map" class="map"></div>
+
+        <div id="destination-info" class="destination-info" style="display: none;">
+          <div class="destination-card">
+            <h3 id="dest-airport-name">---</h3>
+            <small id="dest-airport-code">---</small>
+            <div class="destination-details">
+              <p><strong>Municipality:</strong> <span id="dest-municipality">---</span></p>
+              <p><strong>Country:</strong> <span id="dest-country">---</span></p>
+              <p><strong>Distance:</strong> <span id="dest-distance">---</span> km</p>
+              <p><strong>CO₂ Cost:</strong> <span id="dest-co2-cost">---</span> kg</p>
+            </div>
+            <div class="destination-actions">
+              <button id="travel-btn" class="btn btn-primary">Travel Here</button>
+              <button id="cancel-destination-btn" class="btn btn-secondary">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/static/js/move.js"></script>
+</body>
+</html>

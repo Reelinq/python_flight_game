@@ -50,6 +50,7 @@ def get_state(db: Session, game_id: int) -> dict:
         "target_airports": g.target_airports,
         "remaining_targets": remaining,
         "targets_completed": _targets_completed(g),
+        "visited_idents": g.visited_idents or [],
         "current_airport": {
             "ident": current.ident,
             "name": current.name,

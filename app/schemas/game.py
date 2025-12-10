@@ -19,6 +19,7 @@ class GameStateOut(BaseModel):
     target_airports: List[AirportMinimal]
     remaining_targets: List[AirportMinimal]
     targets_completed: int
+    visited_idents: List[str] = Field(default_factory=list)
     current_airport: AirportMinimal
 
 class TravelResultOut(BaseModel):
