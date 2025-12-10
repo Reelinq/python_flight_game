@@ -322,6 +322,13 @@ async function checkGameOver() {
     if (data.game_over) {
       showStatus("", "default");
       travelBtnEl.disabled = true;
+      state = gameState.currentState;
+
+      if (state.remaining_targets.length > 0) {
+        window.location.href = "/ui/lose";
+      } else {
+        window.location.href = "/ui/win";
+      }
     }
   } catch (error) {
     console.error("Failed to check game over status", error);

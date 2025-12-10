@@ -21,6 +21,16 @@ def settings_page(request: Request):
     return templates.TemplateResponse("lobby/settings.html", {"request": request})
 
 
+@router.get("/lose", response_class=HTMLResponse)
+def settings_page(request: Request):
+    return templates.TemplateResponse("lobby/lose.html", {"request": request})
+
+
+@router.get("/win", response_class=HTMLResponse)
+def settings_page(request: Request):
+    return templates.TemplateResponse("lobby/win.html", {"request": request})
+
+
 @router.get("/move", response_class=HTMLResponse)
 def move_page(request: Request):
     return templates.TemplateResponse("move/move.html", {"request": request})
