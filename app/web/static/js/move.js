@@ -31,6 +31,7 @@ const destDistanceEl = document.getElementById("dest-distance");
 const destCo2CostEl = document.getElementById("dest-co2-cost");
 const travelBtnEl = document.getElementById("travel-btn");
 const cancelDestinationBtnEl = document.getElementById("cancel-destination-btn");
+const quitGameBtnEl = document.getElementById("quit-game-btn");
 
 function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371;
@@ -246,6 +247,15 @@ function cancelDestination() {
   destinationInfoEl.style.display = "none";
 }
 
+function quitGame() {
+  if (confirm("Are you sure you want to quit? Your progress will be lost.")) {
+    localStorage.removeItem("flightGame:gameId");
+    localStorage.removeItem("flightGame:screenName");
+    localStorage.removeItem("flightGame:startAirport");
+    window.location.href = "/ui/";
+  }
+}
+
 async function travelToDestination() {
   if (!gameState.selectedDestination) return;
   if (gameState.isLoading) return;
@@ -333,6 +343,7 @@ async function init() {
 
   travelBtnEl.addEventListener("click", travelToDestination);
   cancelDestinationBtnEl.addEventListener("click", cancelDestination);
+  quitGameBtnEl.addEventListener("click", quitGame);
 
   setInterval(loadGameState, 2000);
 
