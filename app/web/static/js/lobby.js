@@ -151,12 +151,17 @@ async function startGame() {
   }
   setStatus(formStatus, "Starting game…");
   try {
+    const savedSettings = localStorage.getItem("flightGame:settings");
+    const settings = savedSettings ? JSON.parse(savedSettings) : { budget: 2000, rate: 20, unit: "per100" };
+
     const res = await fetch("/game/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         screen_name: screenName,
         start_airport_ident: state.selected.ident,
+        initial_co2_budget: settings.budget,
+        co2_per_100km: settings.unit === "per100" ? settings.rate : settings.rate * 100,
       }),
     });
     const data = await res.json();

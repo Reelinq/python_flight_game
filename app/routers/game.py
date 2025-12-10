@@ -10,7 +10,8 @@ router = APIRouter(prefix="/game", tags=["game"])
 @router.post("/start", response_model=GameStateOut)
 def start_game(body: StartGameIn, db: Session = Depends(get_db)):
     try:
-        g = game_service.start_game(db, body.screen_name, body.start_airport_ident)
+        g = game_service.start_game(db, body.screen_name, body.start_airport_ident,
+                                     body.initial_co2_budget, body.co2_per_100km)
         state = game_service.get_state(db, g.id)
         return GameStateOut(
             id=state["id"],

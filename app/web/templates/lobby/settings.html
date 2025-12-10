@@ -14,11 +14,14 @@
     </header>
     <h1 class="title">Settings</h1>
 
-    <details class="card accordion">
+    <details class="card accordion" open>
       <summary class="buttons accordion-toggle">Choose your budget manually</summary>
       <div class="accordion-body">
         <label class="label" for="co2-budget">Enter initial CO2 budget:</label>
-        <input class="input" id="co2-budget" type="number" name="co2Budget" placeholder="e.g. 1000">
+        <input class="input" id="co2-budget" type="number" name="co2Budget" placeholder="e.g. 2000" min="100" value="2000">
+
+        <label class="label" for="co2-rate">Enter CO2 consumption rate:</label>
+        <input class="input" id="co2-rate" type="number" name="co2Rate" placeholder="e.g. 20" min="0.1" step="0.1" value="20">
 
         <label class="label" for="co2-unit">Choose CO2 consumption unit:</label>
         <div class="radio-group">
@@ -31,10 +34,16 @@
             <span>Per km</span>
           </label>
         </div>
+
+        <div class="status" id="settings-status"></div>
+        <button class="buttons" id="save-settings" type="button">Save Settings</button>
       </div>
     </details>
 
-    <button class="buttons secondary" type="button">Randomize budget and CO2 rate</button>
+    <button class="buttons secondary" id="randomize-btn" type="button">Randomize budget and CO2 rate</button>
+    <a class="buttons" href="/ui/lobby/name">Back to Game</a>
   </main>
+
+  <script src="/static/js/settings.js"></script>
 </body>
 </html>

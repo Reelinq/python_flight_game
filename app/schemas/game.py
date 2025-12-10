@@ -5,6 +5,8 @@ from app.schemas.airport import AirportMinimal
 class StartGameIn(BaseModel):
     screen_name: str
     start_airport_ident: str
+    initial_co2_budget: Optional[float] = None
+    co2_per_100km: Optional[float] = None
 
 class TravelIn(BaseModel):
     destination_ident: str

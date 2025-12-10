@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from typing import List, Dict
+from typing import List, Dict, Optional
 from app.repositories import airport_repo, game_repo
 from app.utils.geo import haversine
 from app.utils.co2 import co2_cost_km
@@ -13,16 +13,21 @@ def _remaining_targets(game: Game) -> List[Dict]:
 def _targets_completed(game: Game) -> int:
     return len(set(game.visited_idents or []))
 
-def start_game(db: Session, screen_name: str, start_ident: str) -> Game:
+def start_game(db: Session, screen_name: str, start_ident: str, 
+               initial_co2_budget: Optional[float] = None,
+               co2_per_100km: Optional[float] = None) -> Game:
     if not airport_repo.get_by_ident(db, start_ident):
         raise ValueError("Invalid start airport ident")
 
     targets = airport_repo.random_targets(db, exclude_ident=start_ident, count=5)
+    
+    budget = initial_co2_budget if initial_co2_budget is not None else float(settings.initial_co2_budget)
+    
     g = game_repo.create(
         db,
         screen_name=screen_name,
         location_ident=start_ident,
-        co2_budget=float(settings.initial_co2_budget),
+        co2_budget=budget,
         co2_consumed=0.0,
         target_airports=targets,
         visited_idents=[]
