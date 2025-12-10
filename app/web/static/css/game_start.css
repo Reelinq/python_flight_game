@@ -34,10 +34,13 @@ body.page {
 }
 
 .content .page-header {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  display: flex;
+  display: none;
+}
+
+.page-header .exit_button {
+  padding: 8px 14px;
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .title {
@@ -227,6 +230,7 @@ body.page {
   display: flex;
   gap: 12px;
   width: 100%;
+  max-width: none;
   align-items: center;
   justify-content: center;
 }
@@ -234,6 +238,18 @@ body.page {
 .form-row .input {
   flex: 1;
   min-width: 0;
+}
+
+.form-row .buttons {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 12px 20px;
+}
+
+.form-row .exit_button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .inline-note {
